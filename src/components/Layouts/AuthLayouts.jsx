@@ -1,5 +1,7 @@
+import { Link } from "react-router-dom";
+
 const AuthLayouts = (props) => {
-  const { children, title } = props;
+  const { children, title, type } = props;
   return (
     <div className="flex justify-center items-center  min-h-screen gap-x-4">
       <div className="w-full max-w-xs">
@@ -8,8 +10,31 @@ const AuthLayouts = (props) => {
           Welcome, Please enter your details
         </p>
         {children}
+        <Navigation type={type} />
       </div>
     </div>
   );
+};
+
+const Navigation = ({ type }) => {
+  if (type === "login") {
+    return (
+      <p className="text-sm my-5 text-center ">
+        Don't have an account?{" "}
+        <Link to="/register" className="font-bold text-blue-600">
+          Sign Up
+        </Link>
+      </p>
+    );
+  } else {
+    return (
+      <p className="text-sm my-5 text-center ">
+        Already have an account?{" "}
+        <Link to="/login" className="font-bold text-blue-600">
+          Sign In
+        </Link>
+      </p>
+    );
+  }
 };
 export default AuthLayouts;
