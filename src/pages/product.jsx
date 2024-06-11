@@ -1,6 +1,7 @@
 import Button from "../components/Elements/Button";
 import CardProduct from "../components/Fragments/CardProduct";
 import { useState } from "react";
+import Counter from "../components/Fragments/Counter";
 
 const products = [
   {
@@ -120,6 +121,9 @@ const ProductPage = () => {
             </tbody>
           </table>
         </div>
+      </div>
+      <div>
+        <Counter />
       </div>
     </>
   );
