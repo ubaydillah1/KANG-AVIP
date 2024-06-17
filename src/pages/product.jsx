@@ -1,6 +1,6 @@
 import Button from "../components/Elements/Button";
 import CardProduct from "../components/Fragments/CardProduct";
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 
 const products = [
   {
@@ -70,6 +70,24 @@ const ProductPage = () => {
     }
   };
 
+  // useRef
+  const cartRef = useRef(JSON.parse(localStorage.getItem("cart")) || []);
+
+  const hanldeAddToCartRef = (id) => {
+    cartRef.current = [...cartRef.current, { id, quantity: 1 }];
+    localStorage.setItem("cart", JSON.stringify(cartRef.current));
+  };
+
+  const totalPriceRef = useRef(null);
+
+  useEffect(() => {
+    if (cart.length > 0) {
+      totalPriceRef.current.style.display = "table-row";
+    } else {
+      totalPriceRef.current.style.display = "none";
+    }
+  }, [cart]);
+
   return (
     <>
       <div className="flex justify-end h-10 bg-blue-600 text-white items-center p-10">
@@ -95,7 +113,12 @@ const ProductPage = () => {
                 <th>Total</th>
               </tr>
             </thead>
-            <DisplayTable cart={cart} totalPrice={totalPrice} />
+            <DisplayTable
+              cart={cart}
+              totalPrice={totalPrice}
+              cartRef={cartRef}
+              ref={totalPriceRef}
+            />
           </table>
         </div>
       </div>
@@ -103,7 +126,7 @@ const ProductPage = () => {
   );
 };
 
-const DisplayTable = ({ cart, totalPrice }) => {
+const DisplayTable = forwardRef(({ cart, totalPrice, cartRef }, ref) => {
   return (
     <tbody>
       {cart.map((item) => {
@@ -129,7 +152,7 @@ const DisplayTable = ({ cart, totalPrice }) => {
           </tr>
         );
       })}
-      <tr>
+      <tr ref={ref}>
         <td colSpan={3}>
           <b>Total Price</b>
         </td>
@@ -145,7 +168,7 @@ const DisplayTable = ({ cart, totalPrice }) => {
       </tr>
     </tbody>
   );
-};
+});
 
 const DisplayProduct = ({ handleAddToCart }) => {
   return (
