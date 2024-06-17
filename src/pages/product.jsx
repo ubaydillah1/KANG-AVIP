@@ -1,54 +1,38 @@
 import Button from "../components/Elements/Button";
 import CardProduct from "../components/Fragments/CardProduct";
 import { forwardRef, useEffect, useRef, useState } from "react";
-
-const products = [
-  {
-    id: 1,
-    name: "Sepatu baru",
-    price: 1000000,
-    image: "/img/shoes.jpg",
-    description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nemo, reprehenderit facere? Inventore et vero, dolorum similique, non molestias dicta velit amet rerum, pariatur vitae ullam! Necessitatibus ipsa numquam repellat accusantium!",
-  },
-  {
-    id: 2,
-    name: "Snickers",
-    price: 500000,
-    image: "/img/shoes.jpg",
-    description: "Lorem ipsum dolor sit amet consectetur ",
-  },
-  {
-    id: 3,
-    name: "Sepatu baru",
-    price: 700000,
-    image: "/img/shoes.jpg",
-    description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. ",
-  },
-];
+import { getProducts } from "../services/product.service";
 
 const email = localStorage.getItem("email");
 
 const ProductPage = () => {
   const [cart, setCart] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
     setCart(JSON.parse(localStorage.getItem("cart")) || []);
   }, []);
 
   useEffect(() => {
-    if (cart.length > 0) {
+    getProducts((data) => {
+      setProducts(data);
+      console.log(data);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (products.length > 0 && cart.length > 0) {
       const sum = cart.reduce((acc, item) => {
         const product = products.find((product) => product.id === item.id);
 
-        return acc + product.price * item.quantity;
+        return product ? acc + product.price * item.quantity : acc;
       }, 0);
 
       setTotalPrice(sum);
       localStorage.setItem("cart", JSON.stringify(cart));
     }
-  }, [cart]);
+  }, [cart, products]);
 
   const handleLogout = () => {
     localStorage.removeItem("email");
@@ -98,10 +82,13 @@ const ProductPage = () => {
       </div>
 
       <div className="flex my-5  ">
-        <div className="w-4/6 flex flex-wrap gap-5">
-          <DisplayProduct handleAddToCart={handleAddToCart} />
+        <div className="w-7/12 flex flex-wrap gap-5">
+          <DisplayProduct
+            products={products}
+            handleAddToCart={handleAddToCart}
+          />
         </div>
-        <div className="w-2/6">
+        <div className="w-5/12">
           <h1 className="text-3xl font-bold text-blue-600 mb-2 ml-5">Cart</h1>
 
           <table className="text-left table-auto border-separate border-spacing-x-5">
@@ -118,6 +105,7 @@ const ProductPage = () => {
               totalPrice={totalPrice}
               cartRef={cartRef}
               ref={totalPriceRef}
+              products={products}
             />
           </table>
         </div>
@@ -126,68 +114,72 @@ const ProductPage = () => {
   );
 };
 
-const DisplayTable = forwardRef(({ cart, totalPrice, cartRef }, ref) => {
-  return (
-    <tbody>
-      {cart.map((item) => {
-        const product = products.find((product) => product.id === item.id);
-        return (
-          <tr key={item.id}>
-            <td>{product.name}</td>
-            <td>
-              Rp{" "}
-              {product.price.toLocaleString("id-ID", {
-                styles: "currency",
-                currency: "IDR",
+const DisplayTable = forwardRef(
+  ({ cart, totalPrice, cartRef, products }, ref) => {
+    return (
+      <tbody>
+        {products.length > 0 &&
+          cart.map((item) => {
+            const product = products.find((product) => product.id === item.id);
+            return product ? (
+              <tr key={item.id}>
+                <td>{product.title}</td>
+                <td>
+                  ${" "}
+                  {product.price.toLocaleString("id-ID", {
+                    style: "decimal",
+                    currency: "USD",
+                  })}
+                </td>
+                <td>{item.quantity}</td>
+                <td>
+                  ${" "}
+                  {(item.quantity * product.price).toLocaleString("id-ID", {
+                    style: "decimal",
+                    currency: "USD",
+                  })}
+                </td>
+              </tr>
+            ) : null;
+          })}
+        <tr ref={ref}>
+          <td colSpan={3}>
+            <b>Total Price</b>
+          </td>
+          <td>
+            <b>
+              ${" "}
+              {totalPrice.toLocaleString("id-ID", {
+                style: "decimal",
+                currency: "USD",
               })}
-            </td>
-            <td>{item.quantity}</td>
-            <td>
-              Rp{" "}
-              {(item.quantity * product.price).toLocaleString("id-ID", {
-                styles: "currency",
-                currency: "IDR",
-              })}
-            </td>
-          </tr>
-        );
-      })}
-      <tr ref={ref}>
-        <td colSpan={3}>
-          <b>Total Price</b>
-        </td>
-        <td>
-          <b>
-            Rp{" "}
-            {totalPrice.toLocaleString("id-ID", {
-              styles: "currency",
-              currency: "IDR",
-            })}
-          </b>
-        </td>
-      </tr>
-    </tbody>
-  );
-});
+            </b>
+          </td>
+        </tr>
+      </tbody>
+    );
+  }
+);
 
-const DisplayProduct = ({ handleAddToCart }) => {
+const DisplayProduct = ({ handleAddToCart, products }) => {
   return (
     <>
-      {products.map((product) => {
-        return (
-          <CardProduct key={product.id}>
-            <CardProduct.Header image={product.image} />
-            <CardProduct.Body name={product.name}>
-              {product.description}
-            </CardProduct.Body>
-            <CardProduct.Footer
-              id={product.id}
-              price={product.price}
-              handleAddToCart={handleAddToCart}
-            />
-          </CardProduct>
-        );
-      })}
+      {products.length > 0 &&
+        products.map((product) => {
+          return (
+            <CardProduct key={product.id}>
+              <CardProduct.Header image={product.image} />
+              <CardProduct.Body name={product.title}>
+                {product.description}
+              </CardProduct.Body>
+              <CardProduct.Footer
+                id={product.id}
+                price={product.price}
+                handleAddToCart={handleAddToCart}
+              />
+            </CardProduct>
+          );
+        })}
     </>
   );
 };
