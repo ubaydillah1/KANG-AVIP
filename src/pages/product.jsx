@@ -166,7 +166,7 @@ const DisplayProduct = ({ handleAddToCart, products }) => {
         products.map((product) => {
           return (
             <CardProduct key={product.id}>
-              <CardProduct.Header image={product.image} />
+              <CardProduct.Header image={product.image} id={product.id} />
               <CardProduct.Body name={product.title}>
                 {product.description}
               </CardProduct.Body>
