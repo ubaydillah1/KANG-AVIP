@@ -12,7 +12,7 @@ const ProductPage = () => {
 
   useEffect(() => {
     setCart(JSON.parse(localStorage.getItem("cart")) || []);
-  });
+  }, []);
 
   useEffect(() => {
     getProducts((data) => {
